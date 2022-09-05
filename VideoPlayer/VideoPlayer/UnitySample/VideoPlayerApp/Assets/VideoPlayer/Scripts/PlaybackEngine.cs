@@ -37,7 +37,7 @@ namespace VideoPlayer
 #endif
             RootVideoFolder = RootVideoFolder.Replace("/", "\\");
 
-            if (!System.IO.Path.IsPathRooted(VideoPath))
+            if (!System.IO.Path.IsPathRooted(VideoPath) && !Uri.IsWellFormedUriString(VideoPath, UriKind.RelativeOrAbsolute))
             {
                 VideoPath = (RootVideoFolder + VideoPath).Replace("/", "\\");
             }
