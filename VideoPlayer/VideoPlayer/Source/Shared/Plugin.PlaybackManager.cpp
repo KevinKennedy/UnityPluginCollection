@@ -235,8 +235,8 @@ HRESULT PlaybackManager::CreateMediaPlayer()
         ZeroMemory(&state, sizeof(CALLBACK_STATE));
 
         state.type = CallbackType::VideoPlayer;
-
         FillPlaybackState(state.value.playbackState);
+        state.value.playbackState.state = MediaPlayerState::Opened;
 
         Callback(state);
     });
@@ -271,6 +271,14 @@ HRESULT PlaybackManager::CreateMediaPlayer()
         state.type = CallbackType::VideoPlayer;
 
         FillPlaybackState(state.value.playbackState);
+        try
+        {
+            state.value.playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
+        }
+        catch(hresult_error const&)
+        {
+            state.value.playbackState.state = MediaPlayerState::None;
+        }
 
         Callback(state);
     });
@@ -285,13 +293,12 @@ void PlaybackManager::FillPlaybackState(PLAYBACK_STATE& playbackState)
 
     try
     {
-        playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
         playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
         playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
         playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
         playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
     }
-    catch (hresult_error const& e)
+    catch (hresult_error const&)
     {
         // In Miracast use, the accessors above will fail.  Ignore
         // the failures and set everytihng to zero.
