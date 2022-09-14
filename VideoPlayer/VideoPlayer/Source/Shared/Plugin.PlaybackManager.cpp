@@ -236,12 +236,7 @@ HRESULT PlaybackManager::CreateMediaPlayer()
 
         state.type = CallbackType::VideoPlayer;
 
-        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
-        state.value.playbackState.state = MediaPlayerState::Opened;
-        state.value.playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
-        state.value.playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
-        state.value.playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
-        state.value.playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
+        FillPlaybackState(state.value.playbackState);
 
         Callback(state);
     });
@@ -275,19 +270,35 @@ HRESULT PlaybackManager::CreateMediaPlayer()
 
         state.type = CallbackType::VideoPlayer;
 
-        ZeroMemory(&state.value.playbackState, sizeof(PLAYBACK_STATE));
-        state.value.playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
-
-        state.value.playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
-        state.value.playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
-        state.value.playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
-        state.value.playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
+        FillPlaybackState(state.value.playbackState);
 
         Callback(state);
     });
 
     return S_OK;
 }
+
+_Use_decl_annotations_
+void PlaybackManager::FillPlaybackState(PLAYBACK_STATE& playbackState)
+{
+    ZeroMemory(&playbackState, sizeof(PLAYBACK_STATE));
+
+    try
+    {
+        playbackState.state = static_cast<MediaPlayerState>(m_mediaPlaybackSession.PlaybackState());
+        playbackState.width = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoWidth());
+        playbackState.height = static_cast<int32_t>(m_mediaPlaybackSession.NaturalVideoHeight());
+        playbackState.canSeek = static_cast<boolean>(m_mediaPlaybackSession.CanSeek());
+        playbackState.duration = m_mediaPlaybackSession.NaturalDuration().count();
+    }
+    catch (hresult_error const& e)
+    {
+        // In Miracast use, the accessors above will fail.  Ignore
+        // the failures and set everytihng to zero.
+        ZeroMemory(&playbackState, sizeof(PLAYBACK_STATE));
+    }
+}
+
 
 _Use_decl_annotations_
 void PlaybackManager::ReleaseMediaPlayer()

@@ -47,6 +47,8 @@ namespace winrt::VideoPlayer::Plugin::implementation
         HRESULT CreateResources(com_ptr<ID3D11Device> const& unityDevice);
         void ReleaseResources();
 
+        void FillPlaybackState(PLAYBACK_STATE& playbackState);
+
     private:
         com_ptr<ID3D11Device> m_d3dDevice;
         uint32_t m_resetToken;
